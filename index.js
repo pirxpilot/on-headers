@@ -6,6 +6,8 @@
 
 module.exports = onHeaders;
 
+const listenerMap = new WeakMap();
+
 /**
  * Execute a listener when a response is about to write headers.
  *
@@ -22,7 +24,12 @@ function onHeaders(res, listener) {
     throw new TypeError('argument listener must be a function');
   }
 
-  res.writeHead = createWriteHead(res.writeHead, listener);
+  if (listenerMap.has(res)) {
+    listenerMap.get(res).push(listener);
+  } else {
+    listenerMap.set(res, [listener]);
+    res.writeHead = createWriteHead(res.writeHead);
+  }
 }
 
 /**
@@ -31,7 +38,7 @@ function onHeaders(res, listener) {
  * @param {function} prevWriteHead
  * @param {function} listener
  */
-function createWriteHead(prevWriteHead, listener) {
+function createWriteHead(prevWriteHead) {
   let fired = false;
 
   return function writeHead(...args) {
@@ -50,10 +57,15 @@ function createWriteHead(prevWriteHead, listener) {
       setWriteHeadHeaders(this, ...args);
     }
 
-    // fire listener
+    // fire listeners
     if (!fired) {
       fired = true;
-      listener.call(this);
+      const listeners = listenerMap.get(this);
+      // reverse order
+      for (let i = listeners.length - 1; i >= 0; i--) {
+        listeners[i].call(this);
+      }
+
       if (outArgs.length > 0) {
         outArgs[0] = this.statusCode;
         if (outArgs.length > 1) {
