@@ -40,9 +40,6 @@
       "complexity": {
         "noForEach": "off",
         "useArrowFunction": "off"
-      },
-      "style": {
-        "noArguments": "off"
       }
     }
   }

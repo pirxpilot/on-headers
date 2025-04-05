@@ -4,51 +4,13 @@
  * MIT Licensed
  */
 
-/**
- * Module exports.
- * @public
- */
-
 module.exports = onHeaders;
-
-/**
- * Create a replacement writeHead method.
- *
- * @param {function} prevWriteHead
- * @param {function} listener
- * @private
- */
-
-function createWriteHead(prevWriteHead, listener) {
-  let fired = false;
-
-  // return function with core name and argument list
-  return function writeHead(_statusCode) {
-    // set headers from arguments
-    const args = setWriteHeadHeaders.apply(this, arguments);
-
-    // fire listener
-    if (!fired) {
-      fired = true;
-      listener.call(this);
-
-      // pass-along an updated status code
-      if (typeof args[0] === 'number' && this.statusCode !== args[0]) {
-        args[0] = this.statusCode;
-        args.length = 1;
-      }
-    }
-
-    return prevWriteHead.apply(this, args);
-  };
-}
 
 /**
  * Execute a listener when a response is about to write headers.
  *
  * @param {object} res
  * @return {function} listener
- * @public
  */
 
 function onHeaders(res, listener) {
@@ -64,64 +26,59 @@ function onHeaders(res, listener) {
 }
 
 /**
- * Set headers contained in array on the response object.
+ * Create a replacement writeHead method.
  *
- * @param {object} res
- * @param {array} headers
- * @private
+ * @param {function} prevWriteHead
+ * @param {function} listener
  */
+function createWriteHead(prevWriteHead, listener) {
+  let fired = false;
 
-function setHeadersFromArray(res, headers) {
-  for (let i = 0; i < headers.length; i++) {
-    res.setHeader(headers[i][0], headers[i][1]);
-  }
-}
+  return function writeHead(...args) {
+    const outArgs = [];
+    if (typeof args[0] === 'number') {
+      const statusCode = args.shift();
+      this.statusCode = statusCode;
+      outArgs.push(statusCode);
+      if (typeof args[0] === 'string') {
+        const statusMessage = args.shift();
+        this.statusMessage = statusMessage;
+        outArgs.push(statusMessage);
+      }
+    }
+    if (args.length > 0) {
+      setWriteHeadHeaders(this, ...args);
+    }
 
-/**
- * Set headers contained in object on the response object.
- *
- * @param {object} res
- * @param {object} headers
- * @private
- */
+    // fire listener
+    if (!fired) {
+      fired = true;
+      listener.call(this);
+      if (outArgs.length > 0) {
+        outArgs[0] = this.statusCode;
+        if (outArgs.length > 1) {
+          outArgs[1] = this.statusMessage;
+        }
+      }
+    }
 
-function setHeadersFromObject(res, headers) {
-  const keys = Object.keys(headers);
-  for (let i = 0; i < keys.length; i++) {
-    const k = keys[i];
-    if (k) res.setHeader(k, headers[k]);
-  }
+    return prevWriteHead.apply(this, outArgs);
+  };
 }
 
 /**
  * Set headers and other properties on the response object.
  *
  * @param {number} statusCode
- * @private
  */
-
-function setWriteHeadHeaders(statusCode) {
-  const length = arguments.length;
-  const headerIndex = length > 1 && typeof arguments[1] === 'string' ? 2 : 1;
-
-  const headers =
-    length >= headerIndex + 1 ? arguments[headerIndex] : undefined;
-
-  this.statusCode = statusCode;
-
+function setWriteHeadHeaders(res, headers) {
   if (Array.isArray(headers)) {
-    // handle array case
-    setHeadersFromArray(this, headers);
+    for (const header of headers) {
+      res.setHeader(header[0], header[1]);
+    }
   } else if (headers) {
-    // handle object case
-    setHeadersFromObject(this, headers);
+    for (const [k, v] of Object.entries(headers)) {
+      if (k) res.setHeader(k, v);
+    }
   }
-
-  // copy leading arguments
-  const args = new Array(Math.min(length, headerIndex));
-  for (let i = 0; i < args.length; i++) {
-    args[i] = arguments[i];
-  }
-
-  return args;
 }
