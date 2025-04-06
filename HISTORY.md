@@ -1,3 +1,13 @@
+
+2.0.0 / 2025-04-06
+==================
+
+ * rename to @pirxpilot/on-headers
+ * support raw headers format
+ * optimize code for multiple listeners
+ * simplify arguments handling
+ * modernize code
+
 1.0.2 / 2019-02-21
 ==================
 
