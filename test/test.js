@@ -239,7 +239,7 @@ describe('onHeaders(res, listener)', () => {
   });
 
   describe('writeHead(status, arr)', () => {
-    it('should be available in listener', async () => {
+    it('tuples', async () => {
       const server = createServer(listener, handler);
 
       function handler(_req, res) {
@@ -257,6 +257,25 @@ describe('onHeaders(res, listener)', () => {
         .expect('X-Outgoing-Echo', 'test')
         .expect(201);
     });
+  });
+
+  it('raw headers', async () => {
+    const server = createServer(listener, handler);
+
+    function handler(_req, res) {
+      res.writeHead(201, ['X-Outgoing', 'test']);
+    }
+
+    function listener() {
+      this.setHeader('X-Status', this.statusCode);
+      this.setHeader('X-Outgoing-Echo', this.getHeader('X-Outgoing'));
+    }
+
+    await request(server)
+      .get('/')
+      .expect('X-Status', '201')
+      .expect('X-Outgoing-Echo', 'test')
+      .expect(201);
   });
 });
 

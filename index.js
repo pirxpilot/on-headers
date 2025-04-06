@@ -85,8 +85,20 @@ function createWriteHead(prevWriteHead) {
  */
 function setWriteHeadHeaders(res, headers) {
   if (Array.isArray(headers)) {
-    for (const header of headers) {
-      res.setHeader(header[0], header[1]);
+    if (Array.isArray(headers[0])) {
+      // support array of tuples for backwards compatibility
+      // [ ['Content-Type', 'text/plain'], ... ]
+      for (const header of headers) {
+        res.setHeader(header[0], header[1]);
+      }
+    } else {
+      // [ 'Content-Type', 'text/plain', ... ]
+      // support array of strings
+      for (let i = 0; i < headers.length; i += 2) {
+        const k = headers[i];
+        const v = headers[i + 1];
+        if (k) res.setHeader(k, v);
+      }
     }
   } else if (headers) {
     for (const [k, v] of Object.entries(headers)) {
