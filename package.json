@@ -1,5 +1,5 @@
 {
-  "name": "on-headers",
+  "name": "@pirxpilot/on-headers",
   "description": "Execute a listener when a response is about to write headers",
   "version": "1.0.2",
   "author": "Douglas Christopher Wilson <doug@somethingdoug.com>",
@@ -10,18 +10,13 @@
     "http",
     "onheaders"
   ],
-  "repository": "jshttp/on-headers",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pirxpilot/on-headers.git"
+  },
   "devDependencies": {
-    "eslint": "6.8.0",
-    "eslint-config-standard": "14.1.1",
-    "eslint-plugin-import": "2.21.2",
-    "eslint-plugin-markdown": "1.0.2",
-    "eslint-plugin-node": "11.1.0",
-    "eslint-plugin-promise": "4.2.1",
-    "eslint-plugin-standard": "4.0.1",
-    "mocha": "10.2.0",
-    "nyc": "15.1.0",
-    "supertest": "4.0.2"
+    "@biomejs/biome": "^1.9.4",
+    "supertest": "7.1.0"
   },
   "files": [
     "LICENSE",
@@ -30,13 +25,9 @@
     "index.js"
   ],
   "engines": {
-    "node": ">= 0.8"
+    "node": ">= 20.0.0"
   },
   "scripts": {
-    "lint": "eslint --plugin markdown --ext js,md .",
-    "test": "mocha --reporter spec --bail --check-leaks test/",
-    "test-ci": "nyc --reporter=lcov --reporter=text npm test",
-    "test-cov": "nyc --reporter=html --reporter=text npm test",
-    "version": "node scripts/version-history.js && git add HISTORY.md"
+    "test": "make check"
   }
 }

@@ -1,318 +1,317 @@
+const { describe, it } = require('node:test');
+const assert = require('node:assert');
+const http = require('node:http');
+const onHeaders = require('..');
+const request = require('supertest');
 
-var assert = require('assert')
-var http = require('http')
-var onHeaders = require('..')
-var request = require('supertest')
+describe('onHeaders(res, listener)', () => {
+  it('should fire after setHeader', async () => {
+    const server = createServer(echoListener);
 
-describe('onHeaders(res, listener)', function () {
-  it('should fire after setHeader', function (done) {
-    var server = createServer(echoListener)
-
-    request(server)
+    await request(server)
       .get('/')
       .expect('X-Outgoing-Echo', 'test')
-      .expect(200, done)
-  })
+      .expect(200);
+  });
 
-  it('should fire before write', function (done) {
-    var server = createServer(echoListener, handler)
+  it('should fire before write', async () => {
+    const server = createServer(echoListener, handler);
 
-    function handler (req, res) {
-      res.setHeader('X-Outgoing', 'test')
-      res.write('1')
+    function handler(_req, res) {
+      res.setHeader('X-Outgoing', 'test');
+      res.write('1');
     }
 
-    request(server)
+    await request(server)
       .get('/')
       .expect('X-Outgoing-Echo', 'test')
-      .expect(200, '1', done)
-  })
+      .expect(200, '1');
+  });
 
-  it('should fire with no headers', function (done) {
-    var server = createServer(listener, handler)
+  it('should fire with no headers', async () => {
+    const server = createServer(listener, handler);
 
-    function handler (req, res) {}
+    function handler() {}
 
-    function listener (req, res) {
-      this.setHeader('X-Headers', getAllHeaderNames(this).join(','))
+    function listener() {
+      this.setHeader('X-Headers', getAllHeaderNames(this).join(','));
     }
 
-    request(server)
-      .get('/')
-      .expect('X-Headers', '')
-      .expect(200, done)
-  })
+    await request(server).get('/').expect('X-Headers', '').expect(200);
+  });
 
-  it('should fire only once', function (done) {
-    var count = 0
-    var server = createServer(listener, handler)
+  it('should fire only once', async () => {
+    let count = 0;
+    const server = createServer(listener, handler);
 
-    function handler (req, res) {
-      res.writeHead(200)
+    function handler(_req, res) {
+      res.writeHead(200);
 
-      try { res.writeHead(200) } catch (e) {}
+      try {
+        res.writeHead(200);
+      } catch {}
     }
 
-    function listener (req, res) {
-      count++
+    function listener() {
+      count++;
     }
 
-    request(server)
-      .get('/')
-      .expect(200, function (err) {
-        if (err) return done(err)
-        assert.strictEqual(count, 1)
-        done()
-      })
-  })
+    await request(server).get('/').expect(200);
+    assert.strictEqual(count, 1);
+  });
 
-  it('should fire in reverse order', function (done) {
-    var server = createServer(echoListener, handler)
+  it('should fire in reverse order', async () => {
+    const server = createServer(echoListener, handler);
 
-    function handler (req, res) {
-      onHeaders(res, appendHeader(1))
-      onHeaders(res, appendHeader(2))
-      onHeaders(res, appendHeader(3))
-      res.setHeader('X-Outgoing', 'test')
+    function handler(_req, res) {
+      onHeaders(res, appendHeader(1));
+      onHeaders(res, appendHeader(2));
+      onHeaders(res, appendHeader(3));
+      res.setHeader('X-Outgoing', 'test');
     }
 
-    request(server)
+    await request(server)
       .get('/')
       .expect('X-Outgoing-Echo', 'test,3,2,1')
-      .expect(200, done)
-  })
+      .expect(200);
+  });
 
-  describe('arguments', function () {
-    describe('res', function () {
-      it('should be required', function () {
-        assert.throws(onHeaders.bind(), /res.*required/)
-      })
-    })
+  describe('arguments', () => {
+    describe('res', () => {
+      it('should be required', () => {
+        assert.throws(onHeaders.bind(), /res.*required/);
+      });
+    });
 
-    describe('listener', function () {
-      it('should be required', function (done) {
-        var server = createServer()
+    describe('listener', () => {
+      it('should be required', async () => {
+        const server = createServer();
 
-        request(server)
+        await request(server)
           .get('/')
-          .expect(500, /listener.*function/, done)
-      })
+          .expect(500, /listener.*function/);
+      });
 
-      it('should only accept function', function (done) {
-        var server = createServer(42)
+      it('should only accept function', async () => {
+        const server = createServer(42);
 
-        request(server)
+        await request(server)
           .get('/')
-          .expect(500, /listener.*function/, done)
-      })
-    })
-  })
+          .expect(500, /listener.*function/);
+      });
+    });
+  });
 
-  describe('setHeader', function () {
-    it('should be available in listener', function (done) {
-      var server = createServer(echoListener)
+  describe('setHeader', () => {
+    it('should be available in listener', async () => {
+      const server = createServer(echoListener);
 
-      request(server)
+      await request(server)
         .get('/')
         .expect('X-Outgoing-Echo', 'test')
-        .expect(200, done)
-    })
-  })
+        .expect(200);
+    });
+  });
 
-  describe('writeHead(status)', function () {
-    it('should make status available in listener', function (done) {
-      var server = createServer(listener, handler)
+  describe('writeHead(status)', () => {
+    it('should make status available in listener', async () => {
+      const server = createServer(listener, handler);
 
-      function handler (req, res) {
-        res.writeHead(201)
+      function handler(_req, res) {
+        res.writeHead(201);
       }
 
-      function listener (req, res) {
-        this.setHeader('X-Status', this.statusCode)
+      function listener() {
+        this.setHeader('X-Status', this.statusCode);
       }
 
-      request(server)
-        .get('/')
-        .expect('X-Status', '201')
-        .expect(201, done)
-    })
+      await request(server).get('/').expect('X-Status', '201').expect(201);
+    });
 
-    it('should allow manipulation of status in listener', function (done) {
-      var server = createServer(listener, handler)
+    it('should allow manipulation of status in listener', async () => {
+      const server = createServer(listener, handler);
 
-      function handler (req, res) {
-        res.writeHead(201)
+      function handler(_req, res) {
+        res.writeHead(201);
       }
 
-      function listener (req, res) {
-        this.setHeader('X-Status', this.statusCode)
-        this.statusCode = 202
+      function listener() {
+        this.setHeader('X-Status', this.statusCode);
+        this.statusCode = 202;
       }
 
-      request(server)
-        .get('/')
-        .expect('X-Status', '201')
-        .expect(202, done)
-    })
+      await request(server).get('/').expect('X-Status', '201').expect(202);
+    });
 
-    it('should pass-through core error', function (done) {
-      var server = createServer(appendHeader(1), handler)
+    it('should pass-through core error', async () => {
+      const server = createServer(appendHeader(1), handler);
 
-      function handler (req, res) {
-        res.writeHead() // error
+      function handler(_req, res) {
+        res.writeHead(); // error
       }
 
-      request(server)
-        .get('/')
-        .expect(500, done)
-    })
+      await request(server).get('/').expect(500);
+    });
 
-    it('should retain return value', function (done) {
-      var server = http.createServer(function (req, res) {
-        if (req.url === '/attach') {
-          onHeaders(res, appendHeader(1))
+    it('should retain return value', async () => {
+      const server = http.createServer(({ url }, res) => {
+        if (url === '/attach') {
+          onHeaders(res, appendHeader(1));
         }
 
-        res.end(typeof res.writeHead(200))
-      })
+        res.end(typeof res.writeHead(200));
+      });
 
-      request(server)
-        .get('/')
-        .expect(200, function (err, res) {
-          if (err) return done(err)
-          request(server)
-            .get('/attach')
-            .expect(200, res.text, done)
-        })
-    })
-  })
+      const { text } = await request(server).get('/').expect(200);
+      await request(server).get('/attach').expect(200, text);
+    });
+  });
 
-  describe('writeHead(status, reason)', function () {
-    it('should be available in listener', function (done) {
-      var server = createServer(echoListener, handler)
+  describe('writeHead(status, reason)', () => {
+    it('should be available in listener', async () => {
+      const server = createServer(echoListener, handler);
 
-      function handler (req, res) {
-        res.setHeader('X-Outgoing', 'test')
-        res.writeHead(200, 'OK')
+      function handler(_req, res) {
+        res.setHeader('X-Outgoing', 'test');
+        res.writeHead(200, 'OK');
       }
 
-      request(server)
+      await request(server)
         .get('/')
         .expect('X-Outgoing-Echo', 'test')
-        .expect(200, done)
-    })
-  })
+        .expect(200);
+    });
+  });
 
-  describe('writeHead(status, reason, obj)', function () {
-    it('should be available in listener', function (done) {
-      var server = createServer(echoListener, handler)
+  describe('writeHead(status, reason, obj)', () => {
+    it('should be available in listener', async () => {
+      const server = createServer(echoListener, handler);
 
-      function handler (req, res) {
-        res.writeHead(200, 'OK', { 'X-Outgoing': 'test' })
+      function handler(_req, res) {
+        res.writeHead(200, 'OK', { 'X-Outgoing': 'test' });
       }
 
-      request(server)
+      await request(server)
         .get('/')
         .expect('X-Outgoing-Echo', 'test')
-        .expect(200, done)
-    })
-  })
+        .expect(200);
+    });
+  });
 
-  describe('writeHead(status, obj)', function () {
-    it('should be available in listener', function (done) {
-      var server = createServer(listener, handler)
+  describe('writeHead(status, obj)', () => {
+    it('should be available in listener', async () => {
+      const server = createServer(listener, handler);
 
-      function handler (req, res) {
-        res.writeHead(201, { 'X-Outgoing': 'test' })
+      function handler(_req, res) {
+        res.writeHead(201, { 'X-Outgoing': 'test' });
       }
 
-      function listener (req, res) {
-        this.setHeader('X-Status', this.statusCode)
-        this.setHeader('X-Outgoing-Echo', this.getHeader('X-Outgoing'))
+      function listener() {
+        this.setHeader('X-Status', this.statusCode);
+        this.setHeader('X-Outgoing-Echo', this.getHeader('X-Outgoing'));
       }
 
-      request(server)
+      await request(server)
         .get('/')
         .expect('X-Status', '201')
         .expect('X-Outgoing-Echo', 'test')
-        .expect(201, done)
-    })
+        .expect(201);
+    });
 
-    it('should handle falsy keys', function (done) {
-      var server = createServer(listener, handler)
+    it('should handle falsy keys', async () => {
+      const server = createServer(listener, handler);
 
-      function handler (req, res) {
-        res.writeHead(201, { 'X-Outgoing': 'test', '': 'test' })
+      function handler(_req, res) {
+        res.writeHead(201, { 'X-Outgoing': 'test', '': 'test' });
       }
 
-      function listener (req, res) {
-        this.setHeader('X-Status', this.statusCode)
-        this.setHeader('X-Outgoing-Echo', this.getHeader('X-Outgoing'))
+      function listener() {
+        this.setHeader('X-Status', this.statusCode);
+        this.setHeader('X-Outgoing-Echo', this.getHeader('X-Outgoing'));
       }
 
-      request(server)
+      await request(server)
         .get('/')
         .expect('X-Status', '201')
         .expect('X-Outgoing-Echo', 'test')
-        .expect(201, done)
-    })
-  })
+        .expect(201);
+    });
+  });
 
-  describe('writeHead(status, arr)', function () {
-    it('should be available in listener', function (done) {
-      var server = createServer(listener, handler)
+  describe('writeHead(status, arr)', () => {
+    it('tuples', async () => {
+      const server = createServer(listener, handler);
 
-      function handler (req, res) {
-        res.writeHead(201, [['X-Outgoing', 'test']])
+      function handler(_req, res) {
+        res.writeHead(201, [['X-Outgoing', 'test']]);
       }
 
-      function listener (req, res) {
-        this.setHeader('X-Status', this.statusCode)
-        this.setHeader('X-Outgoing-Echo', this.getHeader('X-Outgoing'))
+      function listener() {
+        this.setHeader('X-Status', this.statusCode);
+        this.setHeader('X-Outgoing-Echo', this.getHeader('X-Outgoing'));
       }
 
-      request(server)
+      await request(server)
         .get('/')
         .expect('X-Status', '201')
         .expect('X-Outgoing-Echo', 'test')
-        .expect(201, done)
-    })
-  })
-})
+        .expect(201);
+    });
+  });
 
-function createServer (listener, handler) {
-  var fn = handler || echoHandler
+  it('raw headers', async () => {
+    const server = createServer(listener, handler);
 
-  return http.createServer(function (req, res) {
-    try {
-      onHeaders(res, listener)
-      fn(req, res)
-      res.statusCode = 200
-    } catch (err) {
-      res.statusCode = 500
-      res.write(err.message)
-    } finally {
-      res.end()
+    function handler(_req, res) {
+      res.writeHead(201, ['X-Outgoing', 'test']);
     }
-  })
+
+    function listener() {
+      this.setHeader('X-Status', this.statusCode);
+      this.setHeader('X-Outgoing-Echo', this.getHeader('X-Outgoing'));
+    }
+
+    await request(server)
+      .get('/')
+      .expect('X-Status', '201')
+      .expect('X-Outgoing-Echo', 'test')
+      .expect(201);
+  });
+});
+
+function createServer(listener, handler) {
+  const fn = handler || echoHandler;
+
+  return http.createServer((_req, res) => {
+    try {
+      onHeaders(res, listener);
+      fn(_req, res);
+      res.statusCode = 200;
+    } catch (err) {
+      res.statusCode = 500;
+      res.write(err.message);
+    } finally {
+      res.end();
+    }
+  });
 }
 
-function appendHeader (num) {
-  return function onHeaders () {
-    this.setHeader('X-Outgoing', this.getHeader('X-Outgoing') + ',' + num)
-  }
+function appendHeader(num) {
+  return function onHeaders() {
+    this.setHeader('X-Outgoing', `${this.getHeader('X-Outgoing')},${num}`);
+  };
 }
 
-function echoHandler (req, res) {
-  res.setHeader('X-Outgoing', 'test')
+function echoHandler(_req, res) {
+  res.setHeader('X-Outgoing', 'test');
 }
 
-function echoListener () {
-  this.setHeader('X-Outgoing-Echo', this.getHeader('X-Outgoing'))
+function echoListener() {
+  this.setHeader('X-Outgoing-Echo', this.getHeader('X-Outgoing'));
 }
 
-function getAllHeaderNames (res) {
+function getAllHeaderNames(res) {
   return typeof res.getHeaderNames !== 'function'
     ? Object.keys(this._headers || {})
-    : res.getHeaderNames()
+    : res.getHeaderNames();
 }
