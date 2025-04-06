@@ -1,5 +1,5 @@
 {
-  "name": "on-headers",
+  "name": "@pirxpilot/on-headers",
   "description": "Execute a listener when a response is about to write headers",
   "version": "1.0.2",
   "author": "Douglas Christopher Wilson <doug@somethingdoug.com>",
@@ -10,7 +10,10 @@
     "http",
     "onheaders"
   ],
-  "repository": "jshttp/on-headers",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pirxpilot/on-headers.git"
+  },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "supertest": "7.1.0"

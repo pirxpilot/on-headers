@@ -1,22 +1,11 @@
-# on-headers
+[![NPM version][npm-image]][npm-url]
+[![Build Status][build-image]][build-url]
+[![Dependency Status][deps-image]][deps-url]
 
-[![NPM Version][npm-version-image]][npm-url]
-[![NPM Downloads][npm-downloads-image]][npm-url]
-[![Node.js Version][node-image]][node-url]
-[![Build Status][ci-image]][ci-url]
-[![Coverage Status][coveralls-image]][coveralls-url]
+# @pirxpilot/on-headers
 
+This is a fork of [on-headers].
 Execute a listener when a response is about to write headers.
-
-## Installation
-
-This is a [Node.js](https://nodejs.org/en/) module available through the
-[npm registry](https://www.npmjs.com/). Installation is done using the
-[`npm install` command](https://docs.npmjs.com/getting-started/installing-npm-packages-locally):
-
-```sh
-$ npm install on-headers
-```
 
 ## API
 
@@ -60,22 +49,17 @@ function onRequest (req, res) {
 }
 ```
 
-## Testing
-
-```sh
-$ npm test
-```
-
 ## License
 
 [MIT](LICENSE)
 
-[ci-image]: https://badgen.net/github/checks/jshttp/on-headers/master?label=ci
-[ci-url]: https://github.com/jshttp/on-headers/actions/workflows/ci.yml
-[coveralls-image]: https://badgen.net/coveralls/c/github/jshttp/on-headers/master
-[coveralls-url]: https://coveralls.io/r/jshttp/on-headers?branch=master
-[node-image]: https://badgen.net/npm/node/on-headers
-[node-url]: https://nodejs.org/en/download
-[npm-downloads-image]: https://badgen.net/npm/dm/on-headers
-[npm-url]: https://npmjs.org/package/on-headers
-[npm-version-image]: https://badgen.net/npm/v/on-headers
+[on-headers]: https://npmjs.org/package/on-headers
+
+[npm-image]: https://img.shields.io/npm/v/@pirxpilot/on-headers
+[npm-url]: https://npmjs.org/package/@pirxpilot/on-headers
+
+[build-url]: https://github.com/pirxpilot/on-headers/actions/workflows/check.yaml
+[build-image]: https://img.shields.io/github/actions/workflow/status/pirxpilot/on-headers/check.yaml?branch=main
+
+[deps-image]: https://img.shields.io/librariesio/release/npm/@pirxpilot/on-headers
+[deps-url]: https://libraries.io/npm/@pirxpilot%2Fon-headers
